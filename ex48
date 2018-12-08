@@ -1,0 +1,140 @@
+try:
+	from setuptools import setup 
+except ImportError:
+	from distutils.core import setup
+
+config = {
+	'description': 'My project',
+	'author': 'My Name',
+	'url': 'URL to get it at.',
+	'download_url': 'Where to download it.',
+	'author_email': '???@gmail.com',
+	'version': '0.1',
+	'install_requires': ['nose'],
+	'packages': ['NAME'],
+	'scripts': [],
+	'name': 'projectname'
+}
+
+setup(**config)
+
+
+
+# # #
+# Credit: https://gist.github.com/alexbozhkov/afb5f8eade2a9b20d25d
+# # #
+'''Make sure you create a dictionary , sinse it's the easyest way to get values from your 'key' words'''
+
+lexicon = {
+    'north': 'direction',
+    'south': 'direction',
+    'east': 'direction',
+    'go': 'verb',
+    'kill': 'verb',
+    'eat': 'verb',
+    'the': 'stop',
+    'in': 'stop',
+    'of': 'stop',
+    'bear': 'noun',
+    'princess': 'noun',
+    '1234': 'number',
+    3: 'number',
+    91234: 'number'
+    }
+
+ 
+
+def scan(sentence): #no need to go all in and overflow your code with classes and objects , just go with a simple function  
+
+    words = sentence.split() #gets every item (word) one , by one from the lexicon.scan in the test
+                             #remember that an empty space will mark the beggining of new item(3 91234 is "3" and "91234")
+    result = [] # this is the tuple in the list that the test is looking for, and the function will return it after appending.
+    
+    for word in words:
+        check_string = convert_numbers(word) # we need this to convert (if it can) a string to integer with conver_numbers() function
+                                             
+        
+        if word in lexicon: 
+            
+            check_number = convert_numbers(word) 
+            # we need this one for examples like assert_equal(lexicon.scan("1234"), [('number', 1234)])
+            #if there is an integer in the tuple ,instead of a string like most of them in the exercise(a little 'trap' by Zed)
+            #in the convert_numbers() funtion if the string cant be return as int it will be return as string again so no worries.
+            pair = (lexicon[word], check_number) #pairs the two final words in a tuple ...
+            result.append(pair) #...so that it can return the tuple in a list.
+				
+        
+        elif type(check_string) == type(1): #we check if the type of the variable check_string is int ,and if it is then we proceede.
+            
+            number = convert_numbers(word)
+            if number:
+                
+                pair = ('number' , number) #pretty much the same as above only here we put the string 'number' directly in the tuple
+                result.append(pair)
+        else:
+          #this is the tricky part(not hard tho) this final if-statement looks if a word is missing from our dict
+          #and if it is missing it counts as error
+            error_word = word
+            pair = ('error', error_word)
+            result.append(pair)
+                
+    return result
+    
+def convert_numbers(s):
+  '''This is our simple convertor, who checks if a string can be retunred as int and if it can't it moves on as string again'''
+  try:
+        return int(s)
+  except ValueError:
+        return s
+        
+
+
+from nose.tools import *
+from ex48 import lexicon
+
+
+def test_directions():
+    assert_equal(lexicon.scan("north"), [('direction', 'north')])
+    result = lexicon.scan("north south east")
+    assert_equal(result, [('direction', 'north'),
+                          ('direction', 'south'),
+                          ('direction', 'east')])
+
+def test_verbs():
+    assert_equal(lexicon.scan("go"), [('verb', 'go')])
+    result = lexicon.scan("go kill eat")
+    assert_equal(result, [('verb', 'go'),
+                          ('verb', 'kill'),
+                          ('verb', 'eat')])
+
+
+def test_stops():
+    assert_equal(lexicon.scan("the"), [('stop', 'the')])
+    result = lexicon.scan("the in of")
+    assert_equal(result, [('stop', 'the'),
+                          ('stop', 'in'),
+                          ('stop', 'of')])
+
+
+def test_nouns():
+    assert_equal(lexicon.scan("bear"), [('noun', 'bear')])
+    result = lexicon.scan("bear princess")
+    assert_equal(result, [('noun', 'bear'),
+                          ('noun', 'princess')])
+
+def test_numbers():
+    assert_equal(lexicon.scan("1234"), [('number', 1234)])
+    result = lexicon.scan("3 91234")
+    assert_equal(result, [('number', 3),
+                          ('number', 91234)])
+
+
+def test_errors():
+    assert_equal(lexicon.scan("ASDFADFASDF"), [('error', 'ASDFADFASDF')])
+    result = lexicon.scan("bear IAS princess")
+    assert_equal(result, [('noun', 'bear'),
+                          ('error', 'IAS'),
+                          ('noun', 'princess')])
+
+
+
